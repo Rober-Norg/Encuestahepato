@@ -9,6 +9,7 @@ const DRAFT_KEY = 'survey_vhd_draft'
 const loadDraft  = () => { try { const s = localStorage.getItem(DRAFT_KEY); return s ? JSON.parse(s) : null } catch { return null } }
 const saveDraft  = (step, answers) => { try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ step, answers })) } catch {} }
 const clearDraft = () => { try { localStorage.removeItem(DRAFT_KEY) } catch {} }
+export const hasMeaningfulDraft = () => { const d = loadDraft(); return !!(d && (d.step > 0 || Object.keys(d.answers || {}).length > 0)) }
 
 // ─── Definición de secciones ─────────────────────────────────────────────────
 const SURVEY_SECTIONS = [

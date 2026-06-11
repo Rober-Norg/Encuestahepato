@@ -1,5 +1,5 @@
 // src/App.jsx — Estado global, routing, layout, responsive
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
 import { C, Icon, Sidebar, useIsMobile } from './components/Shared.jsx'
@@ -7,7 +7,7 @@ import Dashboard    from './views/Dashboard.jsx'
 import Upload       from './views/Upload.jsx'
 import Analysis     from './views/Analysis.jsx'
 import Comparativas from './views/Comparativas.jsx'
-import Survey, { buildResponseFromSurvey, downloadSurveyPDF } from './views/Survey.jsx'
+import Survey, { buildResponseFromSurvey, downloadSurveyPDF, hasMeaningfulDraft } from './views/Survey.jsx'
 import { getInitialData, saveAppData, SAMPLE_RESPONSES } from './data.js'
 import { filterResponses } from './utils.js'
 
@@ -23,7 +23,13 @@ export default function App() {
   const [exporting,   setExporting]  = useState(false)
   const [toast,       setToast]      = useState(null)
   const [sidebarOpen, setSidebar]    = useState(false)
+  const [hasDraft,    setHasDraft]   = useState(hasMeaningfulDraft)
   const isMobile = useIsMobile()
+
+  // Re-check draft whenever we leave the survey screen
+  useEffect(() => {
+    if (activeView !== 'encuesta') setHasDraft(hasMeaningfulDraft())
+  }, [activeView])
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type })
@@ -200,6 +206,21 @@ export default function App() {
           </div>
 
           <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
+            {/* Botón retomar encuesta — solo cuando hay borrador */}
+            {hasDraft && (
+              <button onClick={() => setView('encuesta')} style={{
+                display:'flex', alignItems:'center', gap:6,
+                padding: isMobile ? '8px 12px' : '8px 16px',
+                borderRadius:8, border:`1.5px solid ${C.amber}`,
+                background:C.amber, color:C.white,
+                fontFamily:'inherit', fontSize:12, fontWeight:700, cursor:'pointer'
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                {!isMobile && 'Continúa la encuesta'}
+              </button>
+            )}
             {/* Botón encuesta — siempre visible */}
             <button onClick={() => setView('encuesta')} style={{
               display:'flex', alignItems:'center', gap:6,
