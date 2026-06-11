@@ -419,6 +419,7 @@ export default function Survey({ onSubmit, onCancel }) {
   const [errors, setErrors]     = useState({})
   const [completed, setCompleted] = useState(false)
   const [savedResponse, setSavedResponse] = useState(null)
+  const scrollRef = React.useRef(null)
 
   const totalSteps = SURVEY_SECTIONS.length
   const section    = SURVEY_SECTIONS[step]
@@ -449,11 +450,11 @@ export default function Survey({ onSubmit, onCancel }) {
       setCompleted(true)
     } else {
       setStep(s => s + 1)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
-  const back = () => { setStep(s => s - 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const back = () => { setStep(s => s - 1); scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }
 
   const renderQuestion = (q) => {
     const val  = answers[q.id]
@@ -527,7 +528,7 @@ export default function Survey({ onSubmit, onCancel }) {
   const pct = Math.round((step / totalSteps) * 100)
 
   return (
-    <div style={{ minHeight:'100vh', background:C.bg, paddingBottom:100 }}>
+    <div ref={scrollRef} style={{ height:'100vh', overflowY:'auto', background:C.bg, paddingBottom:100 }}>
       {/* Header fijo */}
       <div style={{ position:'sticky', top:0, zIndex:20, background:C.white, borderBottom:`1px solid ${C.border}` }}>
         <div style={{ maxWidth:680, margin:'0 auto', padding:'0 20px' }}>
