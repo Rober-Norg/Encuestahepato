@@ -17,6 +17,8 @@ const SURVEY_SECTIONS = [
     step: 0, id: 'perfil', title: 'Perfil del médico',
     subtitle: 'Datos completamente anónimos — sin nombre ni apellidos',
     questions: [
+      { id:'p00h', type:'text', required:true, label:'¿A qué hospital perteneces?',
+        placeholder:'Nombre del hospital' },
       { id:'p00a', type:'radio', required:true, label:'¿Cuál es su especialidad?',
         options:['Hepatólogo/a','Gastroenterólogo/a','Internista','Infectólogo/a','Otro'] },
       { id:'p00b', type:'select', required:true, label:'¿En qué comunidad autónoma ejerce actualmente?',
@@ -184,7 +186,7 @@ function downloadSurveyPDF(response) {
 
   // Profile box
   doc.setFillColor(232, 242, 250)
-  doc.roundedRect(ml, y - 4, pw - ml - mr, 34, 2, 2, 'F')
+  doc.roundedRect(ml, y - 4, pw - ml - mr, 40, 2, 2, 'F')
   doc.setTextColor(29, 50, 82)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
@@ -194,6 +196,7 @@ function downloadSurveyPDF(response) {
   doc.setFontSize(9)
   doc.setTextColor(58, 74, 90)
   const profile = [
+    ['Hospital', response.doctor.hospital],
     ['Especialidad', response.doctor.especialidad],
     ['Comunidad Autónoma', response.doctor.region],
     ['Tipo de centro', response.doctor.tipocentro],
@@ -273,7 +276,7 @@ export function buildResponseFromSurvey(answers) {
     fromSurvey: true,
     doctor: {
       nombre:       'Anónimo',
-      hospital:     '',
+      hospital:     answers.p00h || '',
       region:       answers.p00b || '',
       especialidad: answers.p00a || '',
       tipocentro:   answers.p00c || '',
@@ -408,6 +411,17 @@ const SelectQ = ({ q, value, onChange }) => (
   </select>
 )
 
+const TextQ = ({ q, value, onChange }) => (
+  <input type="text" value={value || ''} onChange={e => onChange(e.target.value)}
+    placeholder={q.placeholder || ''}
+    style={{
+      width:'100%', padding:'14px 16px', borderRadius:10, fontSize:15,
+      border:`1.5px solid ${value ? C.blue : C.border}`,
+      background:C.white, color:C.textPri, fontFamily:'inherit',
+      outline:'none', minHeight:48
+    }} />
+)
+
 const TextareaQ = ({ q, value, onChange }) => (
   <textarea value={value || ''} onChange={e => onChange(e.target.value)}
     placeholder={q.placeholder || ''}
@@ -494,6 +508,7 @@ export default function Survey({ onSubmit, onCancel }) {
         {q.type === 'checkbox' && <CheckboxQ q={q} value={val||[]}  onChange={change} />}
         {q.type === 'scale'    && <ScaleQ    q={q} value={val}      onChange={change} />}
         {q.type === 'select'   && <SelectQ   q={q} value={val}      onChange={change} />}
+        {q.type === 'text'     && <TextQ     q={q} value={val}      onChange={change} />}
         {q.type === 'textarea' && <TextareaQ q={q} value={val}      onChange={change} />}
         {err && <div style={{ marginTop:6, padding:'8px 12px', background:'#FEF2F2', borderRadius:8, fontSize:12, color:C.danger }}>
           Este campo es obligatorio
