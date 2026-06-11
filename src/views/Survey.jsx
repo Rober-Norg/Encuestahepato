@@ -1,8 +1,14 @@
 // src/views/Survey.jsx — Formulario multi-paso, responsive, con PDF individual
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { jsPDF } from 'jspdf'
 import { C, Icon, Badge } from '../components/Shared.jsx'
 import { REGIONS } from '../data.js'
+
+// ─── Persistencia de borrador ─────────────────────────────────────────────────
+const DRAFT_KEY = 'survey_vhd_draft'
+const loadDraft  = () => { try { const s = localStorage.getItem(DRAFT_KEY); return s ? JSON.parse(s) : null } catch { return null } }
+const saveDraft  = (step, answers) => { try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ step, answers })) } catch {} }
+const clearDraft = () => { try { localStorage.removeItem(DRAFT_KEY) } catch {} }
 
 // ─── Definición de secciones ─────────────────────────────────────────────────
 const SURVEY_SECTIONS = [
@@ -414,12 +420,25 @@ const TextareaQ = ({ q, value, onChange }) => (
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 export default function Survey({ onSubmit, onCancel }) {
+  const [initialDraft]  = useState(loadDraft)
+  const hasDraft = !!(initialDraft && (initialDraft.step > 0 || Object.keys(initialDraft.answers || {}).length > 0))
+  const [showResume, setShowResume] = useState(hasDraft)
+
   const [step, setStep]         = useState(0)
   const [answers, setAnswers]   = useState({})
   const [errors, setErrors]     = useState({})
   const [completed, setCompleted] = useState(false)
   const [savedResponse, setSavedResponse] = useState(null)
   const scrollRef = React.useRef(null)
+
+  // Auto-save en cada cambio; limpiar al completar
+  useEffect(() => {
+    if (completed) {
+      clearDraft()
+    } else if (step > 0 || Object.keys(answers).length > 0) {
+      saveDraft(step, answers)
+    }
+  }, [step, answers, completed])
 
   const totalSteps = SURVEY_SECTIONS.length
   const section    = SURVEY_SECTIONS[step]
@@ -478,6 +497,71 @@ export default function Survey({ onSubmit, onCancel }) {
         {err && <div style={{ marginTop:6, padding:'8px 12px', background:'#FEF2F2', borderRadius:8, fontSize:12, color:C.danger }}>
           Este campo es obligatorio
         </div>}
+      </div>
+    )
+  }
+
+  // Pantalla de retomar encuesta
+  if (showResume && hasDraft) {
+    const draftSection = SURVEY_SECTIONS[initialDraft.step] || SURVEY_SECTIONS[0]
+    const pctDraft = Math.round((initialDraft.step / SURVEY_SECTIONS.length) * 100)
+    return (
+      <div style={{ height:'100vh', overflowY:'auto', background:C.bg, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
+        <div style={{ maxWidth:460, width:'100%', background:C.white, borderRadius:20, padding:'36px 28px', textAlign:'center', boxShadow:'0 8px 40px rgba(0,0,0,0.08)', position:'relative' }}>
+          <button onClick={onCancel} style={{ position:'absolute', top:16, right:16, background:'none', border:'none', cursor:'pointer', padding:4, color:C.gray, display:'flex', alignItems:'center' }}>
+            <Icon name="close" size={18} color={C.gray} />
+          </button>
+          <div style={{ width:64, height:64, borderRadius:'50%', background:C.blue+'15', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px' }}>
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={C.blue} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <h2 style={{ fontSize:20, fontWeight:800, color:C.navy, marginBottom:8 }}>Tienes una encuesta en curso</h2>
+          <p style={{ fontSize:14, color:C.textSec, lineHeight:1.6, marginBottom:16 }}>
+            Te quedaste en la sección <strong>{initialDraft.step + 1} de {SURVEY_SECTIONS.length}</strong>
+          </p>
+          <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:C.lightBg, borderRadius:10, padding:'8px 14px', marginBottom:8 }}>
+            {draftSection.blockNum && (
+              <div style={{ width:20, height:20, borderRadius:5, background:C.blue, display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:800, color:C.white, flexShrink:0 }}>
+                {draftSection.blockNum}
+              </div>
+            )}
+            <span style={{ fontSize:13, fontWeight:600, color:C.navy }}>{draftSection.title}</span>
+          </div>
+          <div style={{ margin:'12px 0 24px' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+              <span style={{ fontSize:11, color:C.gray }}>Progreso guardado</span>
+              <span style={{ fontSize:11, fontWeight:700, color:C.blue }}>{pctDraft}%</span>
+            </div>
+            <div style={{ height:6, background:C.border, borderRadius:6, overflow:'hidden' }}>
+              <div style={{ height:'100%', width:`${pctDraft}%`, background:C.blue, borderRadius:6 }} />
+            </div>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+            <button onClick={() => {
+              setStep(initialDraft.step)
+              setAnswers(initialDraft.answers || {})
+              setShowResume(false)
+            }} style={{
+              padding:'14px 24px', borderRadius:12, border:'none',
+              background:C.blue, color:C.white, fontSize:14, fontWeight:700,
+              cursor:'pointer', fontFamily:'inherit', minHeight:52
+            }}>
+              Continúa con la encuesta →
+            </button>
+            <button onClick={() => {
+              clearDraft()
+              setShowResume(false)
+            }} style={{
+              padding:'14px 24px', borderRadius:12,
+              border:`1.5px solid ${C.border}`, background:C.white,
+              color:C.textSec, fontSize:14, fontWeight:600,
+              cursor:'pointer', fontFamily:'inherit', minHeight:52
+            }}>
+              Realizar nueva encuesta
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
