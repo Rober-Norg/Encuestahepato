@@ -7,9 +7,17 @@ import Dashboard    from './views/Dashboard.jsx'
 import Upload       from './views/Upload.jsx'
 import Analysis     from './views/Analysis.jsx'
 import Comparativas from './views/Comparativas.jsx'
-import Survey, { buildResponseFromSurvey, downloadSurveyPDF, hasMeaningfulDraft } from './views/Survey.jsx'
-import { getInitialData, saveAppData, SAMPLE_RESPONSES } from './data.js'
+import Survey, { downloadSurveyPDF, hasMeaningfulDraft } from './views/Survey.jsx'
+import { SAMPLE_RESPONSES } from './data.js'
 import { filterResponses } from './utils.js'
+import {
+  supabase,
+  dbLoadWaves,
+  dbInsertWave,
+  dbUpsertSurveyResponse,
+  dbDeleteWave,
+  dbDeleteResponse,
+} from './supabase.js'
 
 const FALLBACK_WAVE = {
   id:'w_sample', name:'Oleada 1 - Ene 2026', date:'2026-01-24',
@@ -17,7 +25,9 @@ const FALLBACK_WAVE = {
 }
 
 export default function App() {
-  const [data,        setData]       = useState(() => getInitialData())
+  const [waves,       setWaves]      = useState([FALLBACK_WAVE])
+  const [loading,     setLoading]    = useState(true)
+  const [dbError,     setDbError]    = useState(null)
   const [activeView,  setView]       = useState('dashboard')
   const [filters,     setFilters]    = useState({ region:'all', especialidad:'all', hospital:'all', wave:'all' })
   const [exporting,   setExporting]  = useState(false)
@@ -26,7 +36,32 @@ export default function App() {
   const [hasDraft,    setHasDraft]   = useState(hasMeaningfulDraft)
   const isMobile = useIsMobile()
 
-  // Re-check draft whenever we leave the survey screen
+  // ─── Carga desde Supabase ─────────────────────────────────────────────────
+  const loadData = useCallback(async () => {
+    try {
+      const loaded = await dbLoadWaves()
+      setWaves(loaded.length ? loaded : [FALLBACK_WAVE])
+      setDbError(null)
+    } catch(e) {
+      setDbError(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadData()
+
+    // Tiempo real: cualquier dispositivo que escriba actualiza todos los clientes
+    const channel = supabase
+      .channel('db-changes')
+      .on('postgres_changes', { event:'*', schema:'public', table:'waves' },     loadData)
+      .on('postgres_changes', { event:'*', schema:'public', table:'responses' }, loadData)
+      .subscribe()
+
+    return () => supabase.removeChannel(channel)
+  }, [loadData])
+
   useEffect(() => {
     if (activeView !== 'encuesta') setHasDraft(hasMeaningfulDraft())
   }, [activeView])
@@ -36,70 +71,58 @@ export default function App() {
     setTimeout(() => setToast(null), 3200)
   }
 
-  const allResponses    = useMemo(() => data.waves.flatMap(w => w.responses || []), [data.waves])
+  const allResponses    = useMemo(() => waves.flatMap(w => w.responses || []), [waves])
   const activeResponses = useMemo(() => filterResponses(allResponses, filters), [allResponses, filters])
-  const hasSample       = data.waves.some(w => w.isSample)
+  const hasSample       = waves.some(w => w.isSample)
 
-  // ─── Handlers de waves ───────────────────────────────────────────────────
-  const addWave = useCallback((wave) => {
-    setData(prev => {
-      const next = { waves: [...prev.waves.filter(w => !w.isSample), wave] }
-      saveAppData(next); return next
-    })
-    showToast(`Oleada "${wave.name}" importada — ${wave.responses.length} respuestas`)
-    setView('dashboard')
-  }, [])
+  // ─── Handlers ────────────────────────────────────────────────────────────
+  const addWave = useCallback(async (wave) => {
+    try {
+      await dbInsertWave(wave)
+      await loadData()
+      showToast(`Oleada "${wave.name}" importada — ${wave.responses.length} respuestas`)
+      setView('dashboard')
+    } catch(e) {
+      showToast('Error al guardar oleada: ' + e.message, 'error')
+    }
+  }, [loadData])
 
-  const deleteWave = useCallback((waveId) => {
-    setData(prev => {
-      const filtered = prev.waves.filter(w => w.id !== waveId)
-      const next = { waves: filtered.length ? filtered : [FALLBACK_WAVE] }
-      saveAppData(next); return next
-    })
-    showToast('Oleada eliminada', 'info')
-  }, [])
+  const deleteWave = useCallback(async (waveId) => {
+    try {
+      await dbDeleteWave(waveId)
+      await loadData()
+      showToast('Oleada eliminada', 'info')
+    } catch(e) {
+      showToast('Error al eliminar: ' + e.message, 'error')
+    }
+  }, [loadData])
 
-  const deleteResponse = useCallback((waveId, responseId) => {
-    setData(prev => {
-      const next = {
-        waves: prev.waves.map(w =>
-          w.id === waveId
-            ? { ...w, responses: (w.responses || []).filter(r => r.id !== responseId) }
-            : w
-        ).filter(w => (w.responses?.length > 0) || w.isSample)
-      }
-      if (!next.waves.length) next.waves = [FALLBACK_WAVE]
-      saveAppData(next); return next
-    })
-    showToast('Respuesta eliminada', 'info')
-  }, [])
+  const deleteResponse = useCallback(async (waveId, responseId) => {
+    try {
+      await dbDeleteResponse(responseId)
+      await loadData()
+      showToast('Respuesta eliminada', 'info')
+    } catch(e) {
+      showToast('Error al eliminar: ' + e.message, 'error')
+    }
+  }, [loadData])
 
-  // ─── Handler encuesta ────────────────────────────────────────────────────
-  const handleSurveySubmit = useCallback((response) => {
-    setData(prev => {
-      const month = new Date().toLocaleDateString('es-ES', { month:'long', year:'numeric' })
-      const waveName = `Encuestas — ${month.charAt(0).toUpperCase() + month.slice(1)}`
-      const existing = prev.waves.find(w => !w.isSample && w.name === waveName)
-      let newWaves
-      if (existing) {
-        newWaves = prev.waves.map(w =>
-          w.id === existing.id
-            ? { ...w, responses: [...(w.responses||[]), { ...response, wave: waveName }] }
-            : w
-        )
-      } else {
-        const newWave = {
-          id: `w_${Date.now()}`, name: waveName,
-          date: new Date().toISOString().split('T')[0],
-          source:'Encuesta en app', isSample:false,
-          responses: [{ ...response, wave: waveName }]
-        }
-        newWaves = [...prev.waves.filter(w => !w.isSample), newWave]
-      }
-      const next = { waves: newWaves }
-      saveAppData(next); return next
-    })
-  }, [])
+  const handleSurveySubmit = useCallback(async (response) => {
+    const d = new Date()
+    const month = d.toLocaleDateString('es-ES', { month:'long', year:'numeric' })
+    const waveName = `Encuestas — ${month.charAt(0).toUpperCase() + month.slice(1)}`
+    // ID determinista por mes → upsert seguro aunque varios usuarios envíen a la vez
+    const waveId = `w_survey_${d.getFullYear()}_${String(d.getMonth() + 1).padStart(2,'0')}`
+    try {
+      await dbUpsertSurveyResponse(
+        { id: waveId, name: waveName, date: d.toISOString().split('T')[0], source: 'Encuesta en app' },
+        { ...response, wave: waveName }
+      )
+      await loadData()
+    } catch(e) {
+      console.error('Error al guardar encuesta:', e)
+    }
+  }, [loadData])
 
   // ─── Exportar PDF del dashboard ──────────────────────────────────────────
   const exportPDF = useCallback(async () => {
@@ -107,9 +130,8 @@ export default function App() {
     try {
       const el = document.getElementById('main-content')
       if (!el) { showToast('Error al capturar contenido', 'error'); setExporting(false); return }
-      const canvas  = await html2canvas(el, { scale:1.5, useCORS:true, backgroundColor:'#F4F7FA', logging:false })
-      const imgData = canvas.toDataURL('image/jpeg', 0.92)
-      const pdf     = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' })
+      const canvas = await html2canvas(el, { scale:1.5, useCORS:true, backgroundColor:'#F4F7FA', logging:false })
+      const pdf    = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' })
       const pw  = pdf.internal.pageSize.getWidth()
       const ph  = pdf.internal.pageSize.getHeight()
       const imgW = pw - 20, imgH = (canvas.height / canvas.width) * imgW
@@ -130,63 +152,41 @@ export default function App() {
     setExporting(false)
   }, [])
 
-  // ─── Vista survey (pantalla completa sin layout) ─────────────────────────
+  // ─── Vista encuesta (pantalla completa sin layout) ────────────────────────
   if (activeView === 'encuesta') {
-    return (
-      <Survey
-        onSubmit={handleSurveySubmit}
-        onCancel={() => setView('dashboard')}
-      />
-    )
+    return <Survey onSubmit={handleSurveySubmit} onCancel={() => setView('dashboard')} />
   }
 
-  const viewLabel = {
-    dashboard:'Dashboard', datos:'Repositorio de Datos',
-    analisis:'Análisis por Bloque', comparativas:'Comparativas'
-  }
+  const viewLabel  = { dashboard:'Dashboard', datos:'Repositorio de Datos', analisis:'Análisis por Bloque', comparativas:'Comparativas' }
   const toastColors = { success:C.success, error:C.danger, info:C.blue }
-  const commonProps = { responses:activeResponses, waves:data.waves, filters, onChangeFilters:setFilters }
+  const commonProps = { responses:activeResponses, waves, filters, onChangeFilters:setFilters }
 
   return (
     <div style={{ display:'flex', minHeight:'100vh', background:C.bg, fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" }}>
 
-      {/* Overlay mobile */}
       {isMobile && sidebarOpen && (
-        <div onClick={() => setSidebar(false)}
-          style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.45)', zIndex:30 }} />
+        <div onClick={() => setSidebar(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.45)', zIndex:30 }} />
       )}
 
-      {/* Sidebar */}
       <div style={{
-        position: isMobile ? 'fixed' : 'sticky',
-        top:0, left:0, zIndex:40, height:'100vh',
+        position: isMobile ? 'fixed' : 'sticky', top:0, left:0, zIndex:40, height:'100vh',
         transform: isMobile ? (sidebarOpen ? 'translateX(0)' : 'translateX(-100%)') : 'none',
-        transition: isMobile ? 'transform 0.25s ease' : 'none',
-        flexShrink:0
+        transition: isMobile ? 'transform 0.25s ease' : 'none', flexShrink:0
       }}>
-        <Sidebar
-          activeView={activeView}
-          onNavigate={(v) => { setView(v); if(isMobile) setSidebar(false) }}
-          hasSample={hasSample}
-        />
+        <Sidebar activeView={activeView} onNavigate={(v) => { setView(v); if(isMobile) setSidebar(false) }} hasSample={hasSample} />
       </div>
 
-      {/* Contenido */}
       <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column' }}>
         {/* Top bar */}
         <header style={{
           display:'flex', alignItems:'center', justifyContent:'space-between',
           padding:'0 16px 0 ' + (isMobile ? '16px' : '32px'),
-          height:60, background:C.white,
-          borderBottom:`1px solid ${C.border}`,
+          height:60, background:C.white, borderBottom:`1px solid ${C.border}`,
           position:'sticky', top:0, zIndex:10, gap:12
         }}>
           <div style={{ display:'flex', alignItems:'center', gap:12, minWidth:0 }}>
             {isMobile && (
-              <button onClick={() => setSidebar(true)} style={{
-                background:'none', border:'none', cursor:'pointer', padding:6,
-                color:C.navy, display:'flex', alignItems:'center', flexShrink:0
-              }}>
+              <button onClick={() => setSidebar(true)} style={{ background:'none', border:'none', cursor:'pointer', padding:6, color:C.navy, display:'flex', alignItems:'center', flexShrink:0 }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
                 </svg>
@@ -197,16 +197,18 @@ export default function App() {
                 {viewLabel[activeView] || 'Dashboard'}
               </span>
               {!isMobile && (
-                <span style={{ fontSize:11, color:C.gray }}>
-                  {activeResponses.length} respuestas
-                  {Object.values(filters).some(v => v && v !== 'all') ? ' (filtradas)' : ' totales'}
+                <span style={{ fontSize:11, color: loading ? C.amber : dbError ? C.danger : C.gray }}>
+                  {loading
+                    ? 'Cargando datos…'
+                    : dbError
+                    ? 'Error de conexión — mostrando datos locales'
+                    : `${activeResponses.length} respuestas${Object.values(filters).some(v => v && v !== 'all') ? ' (filtradas)' : ' totales'}`}
                 </span>
               )}
             </div>
           </div>
 
           <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
-            {/* Botón retomar encuesta — solo cuando hay borrador */}
             {hasDraft && (
               <button onClick={() => setView('encuesta')} style={{
                 display:'flex', alignItems:'center', gap:6,
@@ -221,7 +223,6 @@ export default function App() {
                 {!isMobile && 'Continúa la encuesta'}
               </button>
             )}
-            {/* Botón encuesta — siempre visible */}
             <button onClick={() => setView('encuesta')} style={{
               display:'flex', alignItems:'center', gap:6,
               padding: isMobile ? '8px 12px' : '8px 16px',
@@ -233,14 +234,12 @@ export default function App() {
               {!isMobile && 'Realizar encuesta'}
               {isMobile && '+'}
             </button>
-
             {!isMobile && (
               <button onClick={exportPDF} disabled={exporting || !activeResponses.length} style={{
-                display:'flex', alignItems:'center', gap:6,
-                padding:'8px 16px', borderRadius:8,
-                background:(exporting||!activeResponses.length)?C.border:C.navy,
-                color:(exporting||!activeResponses.length)?C.gray:C.white,
-                border:'none', cursor:(exporting||!activeResponses.length)?'not-allowed':'pointer',
+                display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8,
+                background:(exporting||!activeResponses.length) ? C.border : C.navy,
+                color:(exporting||!activeResponses.length) ? C.gray : C.white,
+                border:'none', cursor:(exporting||!activeResponses.length) ? 'not-allowed' : 'pointer',
                 fontFamily:'inherit', fontSize:12, fontWeight:600
               }}>
                 <Icon name="export" size={14} color="currentColor" />
@@ -250,16 +249,27 @@ export default function App() {
           </div>
         </header>
 
-        {/* Main */}
-        <main id="main-content" style={{ flex:1, overflowY:'auto', overflowX:'hidden' }}>
+        {/* Banner error de conexión */}
+        {dbError && (
+          <div style={{ background:'#FEF2F2', borderBottom:`1px solid #FECACA`, padding:'7px 32px', fontSize:12, color:C.danger }}>
+            ⚠ Sin conexión a la base de datos: {dbError}
+          </div>
+        )}
+
+        {/* Contenido principal */}
+        <main id="main-content" style={{ flex:1, overflowY:'auto', overflowX:'hidden', position:'relative' }}>
+          {loading && (
+            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(244,247,250,0.85)', zIndex:5 }}>
+              <span style={{ fontSize:14, color:C.textSec, fontWeight:500 }}>Cargando datos…</span>
+            </div>
+          )}
           {activeView === 'dashboard'    && <Dashboard    {...commonProps} onNavigate={setView} />}
-          {activeView === 'datos'        && <Upload        waves={data.waves} onAddWave={addWave} onDeleteWave={deleteWave} onDeleteResponse={deleteResponse} onDownloadPDF={downloadSurveyPDF} />}
+          {activeView === 'datos'        && <Upload        waves={waves} onAddWave={addWave} onDeleteWave={deleteWave} onDeleteResponse={deleteResponse} onDownloadPDF={downloadSurveyPDF} />}
           {activeView === 'analisis'     && <Analysis     {...commonProps} />}
           {activeView === 'comparativas' && <Comparativas {...commonProps} />}
         </main>
       </div>
 
-      {/* Toast */}
       {toast && (
         <div style={{
           position:'fixed', bottom:24, right:16, zIndex:9999,

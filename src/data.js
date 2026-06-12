@@ -345,23 +345,3 @@ export const SAMPLE_RESPONSES = [
   }
 ]
 
-export function saveAppData(data) {
-  try { localStorage.setItem('encuestas_vhd_v1', JSON.stringify(data)); return true }
-  catch(e) { return false }
-}
-
-export function loadAppData() {
-  try { const s = localStorage.getItem('encuestas_vhd_v1'); return s ? JSON.parse(s) : null }
-  catch(e) { return null }
-}
-
-export function getInitialData() {
-  const stored = loadAppData()
-  if (stored && stored.waves && stored.waves.length > 0) return stored
-  return {
-    waves: [{
-      id: 'w_sample', name: 'Oleada 1 - Ene 2026', date: '2026-01-24',
-      source: 'Datos de muestra', isSample: true, responses: SAMPLE_RESPONSES
-    }]
-  }
-}
