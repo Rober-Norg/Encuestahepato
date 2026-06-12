@@ -1,16 +1,27 @@
 // src/supabase.js — Cliente Supabase y funciones de base de datos
 import { createClient } from '@supabase/supabase-js'
 
-export const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-)
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+// Si las vars de entorno no están configuradas (ej. Vercel sin configurar),
+// supabase será null y todas las funciones lanzarán un error descriptivo
+// en lugar de crashear el módulo entero.
+export const supabase = (SUPABASE_URL && SUPABASE_KEY)
+  ? createClient(SUPABASE_URL, SUPABASE_KEY)
+  : null
+
+function requireClient() {
+  if (!supabase) throw new Error('Variables VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY no configuradas en Vercel')
+  return supabase
+}
 
 // Carga todas las oleadas con sus respuestas
 export async function dbLoadWaves() {
+  const db = requireClient()
   const [{ data: wavesRaw, error: wErr }, { data: respRaw, error: rErr }] = await Promise.all([
-    supabase.from('waves').select('*').order('created_at'),
-    supabase.from('responses').select('*').order('created_at'),
+    db.from('waves').select('*').order('created_at'),
+    db.from('responses').select('*').order('created_at'),
   ])
   if (wErr) throw wErr
   if (rErr) throw rErr
@@ -24,12 +35,12 @@ export async function dbLoadWaves() {
     responses: (respRaw || [])
       .filter(r => r.wave_id === w.id)
       .map(r => ({
-        id:               r.id,
-        wave:             r.wave_name,
-        date:             r.date,
-        fromSurvey:       r.from_survey,
-        doctor:           r.doctor   || {},
-        answers:          r.answers  || {},
+        id:                r.id,
+        wave:              r.wave_name,
+        date:              r.date,
+        fromSurvey:        r.from_survey,
+        doctor:            r.doctor  || {},
+        answers:           r.answers || {},
         structuredAnswers: r.structured_answers || undefined,
       })),
   }))
@@ -37,7 +48,8 @@ export async function dbLoadWaves() {
 
 // Inserta una oleada completa con todas sus respuestas (importación Excel)
 export async function dbInsertWave(wave) {
-  const { error: wErr } = await supabase.from('waves').insert({
+  const db = requireClient()
+  const { error: wErr } = await db.from('waves').insert({
     id:        wave.id,
     name:      wave.name,
     date:      wave.date,
@@ -57,28 +69,28 @@ export async function dbInsertWave(wave) {
       answers:            r.answers    || {},
       structured_answers: r.structuredAnswers || null,
     }))
-    const { error: rErr } = await supabase.from('responses').insert(rows)
+    const { error: rErr } = await db.from('responses').insert(rows)
     if (rErr) throw rErr
   }
 }
 
 // Crea la oleada mensual si no existe y añade una respuesta (encuesta en app)
 export async function dbUpsertSurveyResponse(wave, response) {
-  // ignoreDuplicates: true → no falla si la oleada ya existe este mes
-  const { error: wErr } = await supabase.from('waves').upsert(
+  const db = requireClient()
+  const { error: wErr } = await db.from('waves').upsert(
     { id: wave.id, name: wave.name, date: wave.date, source: wave.source, is_sample: false },
     { onConflict: 'id', ignoreDuplicates: true }
   )
   if (wErr) throw wErr
 
-  const { error: rErr } = await supabase.from('responses').insert({
+  const { error: rErr } = await db.from('responses').insert({
     id:                 response.id,
     wave_id:            wave.id,
     wave_name:          wave.name,
     date:               response.date,
     from_survey:        true,
-    doctor:             response.doctor     || {},
-    answers:            response.answers    || {},
+    doctor:             response.doctor  || {},
+    answers:            response.answers || {},
     structured_answers: response.structuredAnswers || null,
   })
   if (rErr) throw rErr
@@ -86,12 +98,14 @@ export async function dbUpsertSurveyResponse(wave, response) {
 
 // Elimina una oleada (las respuestas se borran en cascada)
 export async function dbDeleteWave(waveId) {
-  const { error } = await supabase.from('waves').delete().eq('id', waveId)
+  const db = requireClient()
+  const { error } = await db.from('waves').delete().eq('id', waveId)
   if (error) throw error
 }
 
 // Elimina una respuesta individual
 export async function dbDeleteResponse(responseId) {
-  const { error } = await supabase.from('responses').delete().eq('id', responseId)
+  const db = requireClient()
+  const { error } = await db.from('responses').delete().eq('id', responseId)
   if (error) throw error
 }

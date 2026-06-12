@@ -52,6 +52,8 @@ export default function App() {
   useEffect(() => {
     loadData()
 
+    if (!supabase) return  // sin credenciales → sin realtime, solo datos de muestra
+
     // Tiempo real: cualquier dispositivo que escriba actualiza todos los clientes
     const channel = supabase
       .channel('db-changes')
