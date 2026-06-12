@@ -1,10 +1,11 @@
 // src/views/Comparativas.jsx
 import React, { useState, useMemo } from 'react'
-import { C, Card, EmptyState, RadarChart, Badge, SentimentBar, FilterBar } from '../components/Shared.jsx'
+import { C, Card, EmptyState, RadarChart, Badge, SentimentBar, FilterBar, useIsMobile } from '../components/Shared.jsx'
 import { QUESTION_BLOCKS } from '../data.js'
 import { computeRadarData, computeSentiment, getUniqueValues } from '../utils.js'
 
 export default function Comparativas({ responses, waves, filters, onChangeFilters }) {
+  const isMobile = useIsMobile()
   const [groupBy,     setGroupBy]     = useState('especialidad')
   const [activeBlock, setActiveBlock] = useState(QUESTION_BLOCKS[0].id)
 
@@ -39,7 +40,7 @@ export default function Comparativas({ responses, waves, filters, onChangeFilter
   })
 
   return (
-    <div style={{ padding:'32px 32px 48px', maxWidth:1200 }}>
+    <div style={{ padding: isMobile ? '20px 16px 48px' : '32px 32px 48px', maxWidth:1200 }}>
       <div style={{ marginBottom:20 }}>
         <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:C.textPri }}>Comparativas</h2>
         <p style={{ margin:'6px 0 0', fontSize:13, color:C.textSec }}>Compara respuestas entre grupos para un bloque temático.</p>

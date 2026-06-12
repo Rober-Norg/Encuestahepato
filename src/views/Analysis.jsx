@@ -1,10 +1,11 @@
 // src/views/Analysis.jsx
 import React, { useState, useMemo } from 'react'
-import { C, Card, EmptyState, RadarChart, BarChart, WordCloud, Badge, FilterBar, CHART_COLORS } from '../components/Shared.jsx'
+import { C, Card, EmptyState, RadarChart, BarChart, WordCloud, Badge, FilterBar, CHART_COLORS, useIsMobile } from '../components/Shared.jsx'
 import { QUESTION_BLOCKS } from '../data.js'
 import { computeRadarData, computeSentiment, extractWordFrequency } from '../utils.js'
 
 export default function Analysis({ responses, waves, filters, onChangeFilters }) {
+  const isMobile = useIsMobile()
   const [activeBlock, setActiveBlock] = useState(QUESTION_BLOCKS[0].id)
 
   const block      = useMemo(() => QUESTION_BLOCKS.find(b => b.id === activeBlock), [activeBlock])
@@ -48,7 +49,7 @@ export default function Analysis({ responses, waves, filters, onChangeFilters })
   })
 
   return (
-    <div style={{ padding:'32px 32px 48px', maxWidth:1200 }}>
+    <div style={{ padding: isMobile ? '20px 16px 48px' : '32px 32px 48px', maxWidth:1200 }}>
       <div style={{ marginBottom:20 }}>
         <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:C.textPri }}>Análisis por Bloque</h2>
         <p style={{ margin:'6px 0 0', fontSize:13, color:C.textSec }}>Selecciona un bloque temático para ver su radar, distribución y análisis de texto.</p>
@@ -75,7 +76,7 @@ export default function Analysis({ responses, waves, filters, onChangeFilters })
             </div>
           </div>
 
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20, marginBottom:20 }}>
+          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:20, marginBottom:20 }}>
             <Card title="Diagrama de Araña" subtitle={`Distribución de categorías (% de ${responses.length} respuestas)`}>
               {radarData ? <RadarChart data={radarData} height={300} maxVal={100} /> : <EmptyState title="Sin datos clasificados" sub="Las respuestas no contienen palabras clave detectables." />}
             </Card>
@@ -97,7 +98,7 @@ export default function Analysis({ responses, waves, filters, onChangeFilters })
             </Card>
           </div>
 
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20, marginBottom:20 }}>
+          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:20, marginBottom:20 }}>
             <Card title="Análisis de Sentimiento" subtitle="Percepción de los médicos en este bloque">
               {sentData ? (
                 <div>
@@ -131,7 +132,7 @@ export default function Analysis({ responses, waves, filters, onChangeFilters })
 
           <Card title="Citas Destacadas" subtitle="Respuestas de los médicos a este bloque (extractos)">
             {verbatims.length === 0 ? <EmptyState title="Sin verbatims" /> : (
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:14 }}>
                 {verbatims.map((v, i) => (
                   <div key={i} style={{ background:C.bg, borderRadius:10, padding:'14px 16px', border:`1px solid ${C.border}` }}>
                     <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
