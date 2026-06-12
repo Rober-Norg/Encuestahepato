@@ -40,7 +40,7 @@ export default function Comparativas({ responses, waves, filters, onChangeFilter
   })
 
   return (
-    <div style={{ padding: isMobile ? '20px 16px 48px' : '32px 32px 48px', maxWidth:1200 }}>
+    <div style={{ padding: isMobile ? '20px 16px 48px' : '32px 32px 48px' }}>
       <div style={{ marginBottom:20 }}>
         <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:C.textPri }}>Comparativas</h2>
         <p style={{ margin:'6px 0 0', fontSize:13, color:C.textSec }}>Compara respuestas entre grupos para un bloque temático.</p>
@@ -48,10 +48,10 @@ export default function Comparativas({ responses, waves, filters, onChangeFilter
 
       <FilterBar responses={responses} filters={filters} onChange={onChangeFilters} waves={waves} />
 
-      <div style={{ display:'flex', flexWrap:'wrap', gap:16, marginBottom:24, alignItems:'flex-start' }}>
+      <div style={{ display:'flex', flexDirection: isMobile ? 'column' : 'row', flexWrap:'wrap', gap:16, marginBottom:24, alignItems:'flex-start' }}>
         <div>
           <div style={{ fontSize:11, fontWeight:700, color:C.textSec, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:8 }}>Agrupar por</div>
-          <div style={{ display:'flex', gap:8 }}>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
             {groupByOpts.map(o => <button key={o.value} onClick={()=>setGroupBy(o.value)} style={btnStyle(groupBy===o.value)}>{o.label}</button>)}
           </div>
         </div>

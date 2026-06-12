@@ -49,7 +49,7 @@ export default function Analysis({ responses, waves, filters, onChangeFilters })
   })
 
   return (
-    <div style={{ padding: isMobile ? '20px 16px 48px' : '32px 32px 48px', maxWidth:1200 }}>
+    <div style={{ padding: isMobile ? '20px 16px 48px' : '32px 32px 48px' }}>
       <div style={{ marginBottom:20 }}>
         <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:C.textPri }}>Análisis por Bloque</h2>
         <p style={{ margin:'6px 0 0', fontSize:13, color:C.textSec }}>Selecciona un bloque temático para ver su radar, distribución y análisis de texto.</p>

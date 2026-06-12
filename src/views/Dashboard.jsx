@@ -31,7 +31,7 @@ export default function Dashboard({ responses, waves, filters, onChangeFilters, 
   )
 
   return (
-    <div style={{ padding: isMobile ? '20px 16px 48px' : '32px 32px 48px', maxWidth:1200 }}>
+    <div style={{ padding: isMobile ? '20px 16px 48px' : '32px 32px 48px' }}>
       {hasSample && <SampleBanner onGoToUpload={() => onNavigate('datos')} />}
 
       <FilterBar responses={responses} filters={filters} onChange={onChangeFilters} waves={waves} />
