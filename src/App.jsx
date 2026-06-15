@@ -164,7 +164,7 @@ export default function App() {
   const commonProps = { responses:activeResponses, waves, filters, onChangeFilters:setFilters }
 
   return (
-    <div style={{ display:'flex', minHeight:'100vh', background:C.bg, fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" }}>
+    <div style={{ display:'flex', width:'100%', minHeight:'100vh', background:C.bg, fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" }}>
 
       {isMobile && sidebarOpen && (
         <div onClick={() => setSidebar(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.45)', zIndex:30 }} />
