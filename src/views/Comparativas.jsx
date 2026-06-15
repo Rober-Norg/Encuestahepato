@@ -103,7 +103,7 @@ export default function Comparativas({ responses, waves, filters, onChangeFilter
               <h3 style={{ fontSize:15, fontWeight:700, color:C.textPri, marginBottom:16 }}>
                 Diagramas de araña por {groupByOpts.find(o=>o.value===groupBy)?.label.toLowerCase()}
               </h3>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:16 }}>
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill,minmax(280px,1fr))', gap:16 }}>
                 <Card title="Vista global" subtitle={`Todos (${responses.length})`}>
                   {overallRadar ? <RadarChart data={overallRadar} height={240} maxVal={100} colorOverride={C.navy} /> : <EmptyState title="Sin datos" />}
                 </Card>
