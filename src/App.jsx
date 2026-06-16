@@ -159,7 +159,7 @@ export default function App() {
     return <Survey onSubmit={handleSurveySubmit} onCancel={() => setView('dashboard')} />
   }
 
-  const viewLabel  = { dashboard:'Dashboard', datos:'Repositorio de Datos', analisis:'Análisis por Bloque', comparativas:'Comparativas' }
+  const viewLabel  = { dashboard:'Plantillas y gráficos', datos:'Repositorio de Datos', analisis:'Análisis por Bloque', comparativas:'Comparativas' }
   const toastColors = { success:C.success, error:C.danger, info:C.blue }
   const commonProps = { responses:activeResponses, waves, filters, onChangeFilters:setFilters }
 

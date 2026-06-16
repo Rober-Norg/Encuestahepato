@@ -592,7 +592,7 @@ export default function Survey({ onSubmit, onCancel }) {
           </div>
           <h2 style={{ fontSize:22, fontWeight:800, color:C.navy, marginBottom:8 }}>¡Encuesta completada!</h2>
           <p style={{ fontSize:14, color:C.textSec, lineHeight:1.6, marginBottom:28 }}>
-            Sus respuestas han sido registradas de forma anónima y ya están disponibles en el dashboard.
+            Sus respuestas han sido registradas de forma anónima y ya están disponibles en Plantillas y gráficos.
           </p>
           <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
             <button onClick={() => downloadSurveyPDF(savedResponse)} style={{
@@ -611,7 +611,7 @@ export default function Survey({ onSubmit, onCancel }) {
               cursor:'pointer', fontFamily:'inherit', minHeight:52
             }}>
               <Icon name="dashboard" size={18} color={C.white} />
-              Ver en el dashboard
+              Ver Plantillas y gráficos
             </button>
             <button onClick={() => { setStep(0); setAnswers({}); setErrors({}); setCompleted(false); setSavedResponse(null) }} style={{
               background:'none', border:'none', color:C.gray, fontSize:13,

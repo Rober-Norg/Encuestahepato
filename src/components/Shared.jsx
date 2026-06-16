@@ -184,7 +184,7 @@ export const SentimentBar = ({ score, label }) => {
 
 export const Sidebar = ({ activeView, onNavigate, hasSample }) => {
   const navItems = [
-    { id:'dashboard',    label:'Dashboard',         icon:'dashboard' },
+    { id:'dashboard',    label:'Plantillas y gráficos', icon:'dashboard' },
     { id:'encuesta',     label:'Realizar encuesta', icon:'pencil' },
     { id:'datos',        label:'Datos',             icon:'upload' },
     { id:'analisis',     label:'Análisis',          icon:'chart' },
