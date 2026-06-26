@@ -39,7 +39,7 @@ const SURVEY_SECTIONS = [
         minLabel:'Nada implementado', maxLabel:'Completamente implementado' },
       { id:'p01b', type:'checkbox', required:false, hint:'Puede seleccionar varias opciones',
         label:'¿Dónde cree que se pierden más pacientes con VHD?',
-        options:['Atención Primaria (no se solicita anti-VHD)','Urgencias (no se deriva ni se testa)','Digestivo general (no especializado en VHD)','Hospitales sin hepatólogo dedicado','Falta de protocolo institucional','No existen pérdidas relevantes en mi entorno'] },
+        options:['Atención Primaria (no se solicita anti-VHD)','Urgencias (no se deriva ni se testa)','Digestivo general (no especializado en VHD)','Hospitales sin hepatólogo dedicado','Falta de protocolo institucional','Centros de atención a toxicomanos','No existen pérdidas relevantes en mi entorno'] },
       { id:'p01c', type:'textarea', required:false,
         label:'¿Cree que todos los pacientes con VHB se están testando sistemáticamente para VHD? ¿Dónde se están escapando más del sistema?',
         placeholder:'Cuéntenos con sus palabras... (opcional)' }
