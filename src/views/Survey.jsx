@@ -17,27 +17,27 @@ const SURVEY_SECTIONS = [
     step: 0, id: 'perfil', title: 'Perfil del médico',
     subtitle: 'Datos completamente anónimos — sin nombre ni apellidos',
     questions: [
-      { id:'p00h', type:'text', required:true, label:'¿A qué hospital perteneces?',
+      { id:'p00h', type:'text', required:false, label:'¿A qué hospital perteneces?',
         placeholder:'Nombre del hospital' },
-      { id:'p00a', type:'radio', required:true, label:'¿Cuál es su especialidad?',
+      { id:'p00a', type:'radio', required:false, label:'¿Cuál es su especialidad?',
         options:['Hepatólogo/a','Gastroenterólogo/a','Internista','Infectólogo/a','Otro'] },
-      { id:'p00b', type:'select', required:true, label:'¿En qué comunidad autónoma ejerce actualmente?',
+      { id:'p00b', type:'select', required:false, label:'¿En qué comunidad autónoma ejerce actualmente?',
         options: REGIONS },
-      { id:'p00c', type:'radio', required:true, label:'¿Cuál es el tipo de centro donde trabaja?',
+      { id:'p00c', type:'radio', required:false, label:'¿Cuál es el tipo de centro donde trabaja?',
         options:['Hospital terciario / universitario','Hospital de segundo nivel','Hospital comarcal','Centro privado o clínica'] },
-      { id:'p00d', type:'radio', required:true, label:'¿Cuántos pacientes con VHD tiene actualmente en seguimiento activo?',
+      { id:'p00d', type:'radio', required:false, label:'¿Cuántos pacientes con VHD tiene actualmente en seguimiento activo?',
         options:['Ninguno','1 – 5 pacientes','6 – 15 pacientes','Más de 15 pacientes'] },
-      { id:'p00e', type:'radio', required:true, label:'¿Cuántos años lleva atendiendo pacientes con hepatitis viral?',
+      { id:'p00e', type:'radio', required:false, label:'¿Cuántos años lleva atendiendo pacientes con hepatitis viral?',
         options:['Menos de 5 años','Entre 5 y 10 años','Más de 10 años'] }
     ]
   },
   {
     step: 1, id: 'identificacion', title: 'Identificación de Pacientes', blockNum: 1,
     questions: [
-      { id:'p01a', type:'scale', required:true, min:1, max:5,
+      { id:'p01a', type:'scale', required:false, min:1, max:5,
         label:'En mi centro, el testing sistemático de VHD en pacientes VHB+ está...',
         minLabel:'Nada implementado', maxLabel:'Completamente implementado' },
-      { id:'p01b', type:'checkbox', required:true, hint:'Puede seleccionar varias opciones',
+      { id:'p01b', type:'checkbox', required:false, hint:'Puede seleccionar varias opciones',
         label:'¿Dónde cree que se pierden más pacientes con VHD?',
         options:['Atención Primaria (no se solicita anti-VHD)','Urgencias (no se deriva ni se testa)','Digestivo general (no especializado en VHD)','Hospitales sin hepatólogo dedicado','Falta de protocolo institucional','No existen pérdidas relevantes en mi entorno'] },
       { id:'p01c', type:'textarea', required:false,
@@ -48,13 +48,13 @@ const SURVEY_SECTIONS = [
   {
     step: 2, id: 'diagnostico', title: 'Diagnóstico y Testing', blockNum: 2,
     questions: [
-      { id:'p02a', type:'radio', required:true,
+      { id:'p02a', type:'radio', required:false,
         label:'En su hospital, ¿el test de VHD está protocolizado?',
         options:['Sí, completamente protocolizado y con buena adherencia','Sí, existe protocolo pero la adherencia es baja','No, depende del criterio de cada clínico','No existe ningún protocolo','En proceso de implementación'] },
-      { id:'p02b', type:'radio', required:true,
+      { id:'p02b', type:'radio', required:false,
         label:'¿Se utiliza reflex testing o double reflex en su centro?',
         options:['Sí, double reflex completo (HBsAg+ → anti-VHD → RNA automático)','Sí, reflex parcial (solo HBsAg+ → anti-VHD)','No, cada médico solicita manualmente','En proceso de implementación'] },
-      { id:'p02c', type:'radio', required:true,
+      { id:'p02c', type:'radio', required:false,
         label:'En la práctica, ¿qué falla más en el proceso diagnóstico?',
         options:['Que no se solicita el anti-VHD al paciente VHB+','Que el anti-VHD positivo no se confirma con RNA','Ambas cosas fallan de forma similar','El proceso diagnóstico funciona bien'] },
       { id:'p02d', type:'textarea', required:false,
@@ -65,10 +65,10 @@ const SURVEY_SECTIONS = [
   {
     step: 3, id: 'funnel', title: 'Funnel Diagnóstico y Pérdidas', blockNum: 3,
     questions: [
-      { id:'p03a', type:'radio', required:true,
+      { id:'p03a', type:'radio', required:false,
         label:'Desde que un paciente es HBsAg positivo, ¿en qué punto se pierden más pacientes hasta confirmar VHD?',
         options:['Al solicitar el anti-VHD (no se pide)','Al confirmar con RNA (se queda en el anticuerpo)','En la derivación al especialista','En el seguimiento posterior al diagnóstico','No hay pérdidas significativas en mi entorno'] },
-      { id:'p03b', type:'radio', required:true,
+      { id:'p03b', type:'radio', required:false,
         label:'¿Qué porcentaje aproximado de sus pacientes VHB+ activos tiene el test de VHD realizado?',
         options:['Menos del 25%','Entre el 25% y el 50%','Entre el 50% y el 75%','Más del 75%','No tengo datos precisos'] },
       { id:'p03c', type:'textarea', required:false,
@@ -79,10 +79,10 @@ const SURVEY_SECTIONS = [
   {
     step: 4, id: 'derivacion', title: 'Derivación y Organización Asistencial', blockNum: 4,
     questions: [
-      { id:'p04a', type:'checkbox', required:true, hint:'Puede seleccionar varias opciones',
+      { id:'p04a', type:'checkbox', required:false, hint:'Puede seleccionar varias opciones',
         label:'¿Cómo suelen llegarle los pacientes con VHD?',
         options:['Derivados por otro especialista (digestivo, internista...)','Derivados desde Atención Primaria','Detectados por cribado activo en mi consulta','Por iniciativa propia del paciente','Desde urgencias'] },
-      { id:'p04b', type:'radio', required:true,
+      { id:'p04b', type:'radio', required:false,
         label:'¿Existe un circuito claro de derivación para pacientes con VHD en su área?',
         options:['Sí, un circuito formal bien establecido','Sí, existe pero es mejorable','No, funciona principalmente por relaciones personales','No existe ningún circuito definido','En proceso de desarrollo'] },
       { id:'p04c', type:'textarea', required:false,
@@ -93,7 +93,7 @@ const SURVEY_SECTIONS = [
   {
     step: 5, id: 'estadio', title: 'Estadio de la Enfermedad', blockNum: 5,
     questions: [
-      { id:'p05a', type:'radio', required:true,
+      { id:'p05a', type:'radio', required:false,
         label:'¿En qué estadio llegan habitualmente sus pacientes con VHD confirmado?',
         options:['Principalmente estadio temprano (F0–F1, sin fibrosis significativa)','Principalmente estadio intermedio (F2–F3, fibrosis moderada-grave)','Principalmente cirrosis compensada (F4)','Principalmente cirrosis descompensada o complicada','Mezcla de estadios, sin predominio claro'] },
       { id:'p05b', type:'textarea', required:false,
@@ -104,10 +104,10 @@ const SURVEY_SECTIONS = [
   {
     step: 6, id: 'decision', title: 'Decisión de Tratamiento', blockNum: 6,
     questions: [
-      { id:'p06a', type:'radio', required:true,
+      { id:'p06a', type:'radio', required:false,
         label:'En su hospital, ¿quién toma realmente la decisión de iniciar tratamiento para VHD?',
         options:['El hepatólogo referente del caso','Consenso del equipo de hepatología','Comité multidisciplinar formal','El especialista que lleva el caso (no hepatólogo)','Se deriva a otro centro de referencia para la decisión'] },
-      { id:'p06b', type:'scale', required:true, min:1, max:5,
+      { id:'p06b', type:'scale', required:false, min:1, max:5,
         label:'¿En qué medida se siente seguro/a tomando la decisión de iniciar tratamiento para VHD?',
         minLabel:'Nada seguro/a', maxLabel:'Muy seguro/a' },
       { id:'p06c', type:'textarea', required:false,
@@ -118,13 +118,13 @@ const SURVEY_SECTIONS = [
   {
     step: 7, id: 'acceso', title: 'Acceso al Tratamiento', blockNum: 7,
     questions: [
-      { id:'p07a', type:'radio', required:true,
+      { id:'p07a', type:'radio', required:false,
         label:'¿Cómo calificaría el nivel de dificultad para acceder al tratamiento para VHD en su centro?',
         options:['Acceso fluido, sin dificultades relevantes','Dificultades leves y puntuales','Dificultades moderadas y frecuentes','Dificultades graves que impiden tratar a algunos pacientes','No he intentado prescribir este tratamiento todavía'] },
-      { id:'p07b', type:'checkbox', required:true, hint:'Puede seleccionar varias opciones',
+      { id:'p07b', type:'checkbox', required:false, hint:'Puede seleccionar varias opciones',
         label:'¿Qué barreras encuentra para iniciar tratamiento?',
         options:['Visado de inspección (proceso largo o incierto)','Farmacia hospitalaria (criterios restrictivos o demoras)','Criterios de uso restringido demasiado estrictos','Desconocimiento del proceso de solicitud','Barreras clínicas (identificar al candidato ideal)','No encuentro barreras significativas'] },
-      { id:'p07c', type:'radio', required:true,
+      { id:'p07c', type:'radio', required:false,
         label:'¿Cuánto tiempo pasa habitualmente desde que decide tratar hasta que el paciente recibe el tratamiento?',
         options:['Menos de 2 semanas','Entre 2 y 4 semanas','Entre 1 y 3 meses','Más de 3 meses','No tengo datos precisos'] },
       { id:'p07d', type:'textarea', required:false,
@@ -135,7 +135,7 @@ const SURVEY_SECTIONS = [
   {
     step: 8, id: 'seleccion', title: 'Selección de Pacientes', blockNum: 8,
     questions: [
-      { id:'p08a', type:'checkbox', required:true, hint:'Puede seleccionar varias opciones',
+      { id:'p08a', type:'checkbox', required:false, hint:'Puede seleccionar varias opciones',
         label:'¿En qué tipo de pacientes considera más clara la indicación de tratamiento hoy?',
         options:['Cualquier paciente con RNA-VHD detectable','RNA+ con fibrosis F2 o superior','RNA+ con cirrosis establecida (F4)','Pacientes jóvenes aunque la fibrosis sea leve','Solo en el contexto de ensayos clínicos','Todos los pacientes con VHD activo, independientemente del estadio'] },
       { id:'p08b', type:'textarea', required:false,
@@ -146,10 +146,10 @@ const SURVEY_SECTIONS = [
   {
     step: 9, id: 'necesidades', title: 'Necesidades No Cubiertas', blockNum: 9,
     questions: [
-      { id:'p09a', type:'radio', required:true,
+      { id:'p09a', type:'radio', required:false,
         label:'¿Cuál es la principal necesidad no cubierta actualmente en hepatitis D?',
         options:['Mejorar el diagnóstico y el testing sistemático','Facilitar el acceso al tratamiento','Más formación para médicos no especialistas','Guías clínicas más claras y actualizadas','Registro nacional de pacientes con VHD','Red de centros de referencia estructurada'] },
-      { id:'p09b', type:'radio', required:true,
+      { id:'p09b', type:'radio', required:false,
         label:'¿Qué medida ayudaría más a mejorar el manejo de los pacientes con VHD en su centro?',
         options:['Implementar reflex testing automático en el laboratorio','Protocolo unificado de testing y derivación','Vía rápida de acceso al tratamiento (sin visado)','Programa de formación para AP y urgencias','Consulta de referencia de VHD en mi hospital'] },
       { id:'p09c', type:'textarea', required:false,
