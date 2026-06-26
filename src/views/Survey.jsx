@@ -93,7 +93,7 @@ const SURVEY_SECTIONS = [
   {
     step: 5, id: 'estadio', title: 'Estadio de la Enfermedad', blockNum: 5,
     questions: [
-      { id:'p05a', type:'radio', required:false,
+      { id:'p05a', type:'checkbox', required:false, hint:'Puede seleccionar varias opciones',
         label:'¿En qué estadio llegan habitualmente sus pacientes con VHD confirmado?',
         options:['Principalmente estadio temprano (F0–F1, sin fibrosis significativa)','Principalmente estadio intermedio (F2–F3, fibrosis moderada-grave)','Principalmente cirrosis compensada (F4)','Principalmente cirrosis descompensada o complicada','Mezcla de estadios, sin predominio claro'] },
       { id:'p05b', type:'textarea', required:false,
@@ -104,7 +104,7 @@ const SURVEY_SECTIONS = [
   {
     step: 6, id: 'decision', title: 'Decisión de Tratamiento', blockNum: 6,
     questions: [
-      { id:'p06a', type:'radio', required:false,
+      { id:'p06a', type:'checkbox', required:false, hint:'Puede seleccionar varias opciones',
         label:'En su hospital, ¿quién toma realmente la decisión de iniciar tratamiento para VHD?',
         options:['El hepatólogo referente del caso','Consenso del equipo de hepatología','Comité multidisciplinar formal','El especialista que lleva el caso (no hepatólogo)','Se deriva a otro centro de referencia para la decisión'] },
       { id:'p06b', type:'scale', required:false, min:1, max:5,
@@ -137,7 +137,7 @@ const SURVEY_SECTIONS = [
     questions: [
       { id:'p08a', type:'checkbox', required:false, hint:'Puede seleccionar varias opciones',
         label:'¿En qué tipo de pacientes considera más clara la indicación de tratamiento hoy?',
-        options:['Cualquier paciente con RNA-VHD detectable','RNA+ con fibrosis F2 o superior','RNA+ con cirrosis establecida (F4)','Pacientes jóvenes aunque la fibrosis sea leve','Solo en el contexto de ensayos clínicos','Todos los pacientes con VHD activo, independientemente del estadio'] },
+        options:['Cualquier paciente con RNA-VHD detectable','RNA+ con fibrosis F2 o superior','RNA+ con cirrosis establecida (F4)','Pacientes jóvenes aunque la fibrosis sea leve','Solo en el contexto de ensayos clínicos','Todos los pacientes con VHD activo, independientemente del estadio','Paciente sin cirrosis F1','Paciente sin cirrosis F2'] },
       { id:'p08b', type:'textarea', required:false,
         label:'¿Quiere añadir algún criterio de selección adicional?',
         placeholder:'Opcional...' }
@@ -151,7 +151,7 @@ const SURVEY_SECTIONS = [
         options:['Mejorar el diagnóstico y el testing sistemático','Facilitar el acceso al tratamiento','Más formación para médicos no especialistas','Guías clínicas más claras y actualizadas','Registro nacional de pacientes con VHD','Red de centros de referencia estructurada'] },
       { id:'p09b', type:'radio', required:false,
         label:'¿Qué medida ayudaría más a mejorar el manejo de los pacientes con VHD en su centro?',
-        options:['Implementar reflex testing automático en el laboratorio','Protocolo unificado de testing y derivación','Vía rápida de acceso al tratamiento (sin visado)','Programa de formación para AP y urgencias','Consulta de referencia de VHD en mi hospital'] },
+        options:['Implementar reflex testing automático en el laboratorio','Protocolo unificado de testing y derivación','Vía rápida de acceso al tratamiento (sin visado)','Programa de formación para AP y urgencias','Consulta de referencia de VHD en mi hospital','Formación a cirugía'] },
       { id:'p09c', type:'textarea', required:false,
         label:'¿Cuál diría que es la principal necesidad no cubierta en hepatitis D? ¿Qué cambiaría primero si tuviera los recursos?',
         placeholder:'Su opinión aquí es muy valiosa para el proyecto...' }
